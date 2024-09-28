@@ -49,4 +49,4 @@ curl -fsSLO https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh
 /var/jb/bin/bash uninstall.sh --path /usr/local
 ```
 
-Run the downloaded script with `/bin/bash uninstall.sh --help` to view more uninstall options.
+Run the downloaded script with `/var/jb/bin/bash uninstall.sh --help` to view more uninstall options.
