@@ -146,7 +146,7 @@ fi
 # anywhere you like.
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
-  UNAME_MACHINE="$(/usr/var/jb/bin/uname -m)"
+  UNAME_MACHINE="$(/var/jb/usr/bin/uname -m)"
 
   if [[ "${UNAME_MACHINE}" == "arm64" ]]
   then
@@ -160,7 +160,7 @@ then
   fi
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
 
-  STAT_PRINTF=("/usr/var/jb/bin/stat" "-f")
+  STAT_PRINTF=("/var/jb/usr/bin/stat" "-f")
   PERMISSION_FORMAT="%A"
   CHOWN=("/usr/sbin/chown")
   CHGRP=("/usr/bin/chgrp")
@@ -175,13 +175,13 @@ else
   HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
 
-  STAT_PRINTF=("/usr/var/jb/bin/stat" "--printf")
+  STAT_PRINTF=("/var/jb/usr/bin/stat" "--printf")
   PERMISSION_FORMAT="%a"
   CHOWN=("/var/jb/bin/chown")
   CHGRP=("/var/jb/bin/chgrp")
   GROUP="$(id -gn)"
   TOUCH=("/var/jb/bin/touch")
-  INSTALL=("/usr/var/jb/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0755")
+  INSTALL=("/var/jb/usr/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0755")
 fi
 CHMOD=("/var/jb/bin/chmod")
 MKDIR=("/var/jb/bin/mkdir" "-p")
@@ -220,12 +220,12 @@ export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 unset HAVE_SUDO_ACCESS # unset this from the environment
 
 have_sudo_access() {
-  if [[ ! -x "/usr/var/jb/bin/sudo" ]]
+  if [[ ! -x "/var/jb/usr/bin/sudo" ]]
   then
     return 1
   fi
 
-  local -a SUDO=("/usr/var/jb/bin/sudo")
+  local -a SUDO=("/var/jb/usr/bin/sudo")
   if [[ -n "${SUDO_ASKPASS-}" ]]
   then
     SUDO+=("-A")
@@ -268,8 +268,8 @@ execute_sudo() {
     then
       args=("-A" "${args[@]}")
     fi
-    ohai "/usr/var/jb/bin/sudo" "${args[@]}"
-    execute "/usr/var/jb/bin/sudo" "${args[@]}"
+    ohai "/var/jb/usr/bin/sudo" "${args[@]}"
+    execute "/var/jb/usr/bin/sudo" "${args[@]}"
   else
     ohai "${args[@]}"
     execute "${args[@]}"
@@ -340,9 +340,9 @@ should_install_command_line_tools() {
 
   if version_gt "${macos_version}" "10.13"
   then
-    ! [[ -e "/Library/Developer/CommandLineTools/usr/var/jb/bin/git" ]]
+    ! [[ -e "/Library/Developer/CommandLineTools/var/jb/usr/bin/git" ]]
   else
-    ! [[ -e "/Library/Developer/CommandLineTools/usr/var/jb/bin/git" ]] ||
+    ! [[ -e "/Library/Developer/CommandLineTools/var/jb/usr/bin/git" ]] ||
       ! [[ -e "/usr/include/iconv.h" ]]
   fi
 }
@@ -468,9 +468,9 @@ EOABORT
 fi
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
-if [[ -x /usr/var/jb/bin/sudo ]] && ! /usr/var/jb/bin/sudo -n -v 2>/dev/null
+if [[ -x /var/jb/usr/bin/sudo ]] && ! /var/jb/usr/bin/sudo -n -v 2>/dev/null
 then
-  trap '/usr/var/jb/bin/sudo -k' EXIT
+  trap '/var/jb/usr/bin/sudo -k' EXIT
 fi
 
 # Things can fail later if `pwd` doesn't exist.
@@ -521,7 +521,7 @@ fi
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
   # On macOS, support 64-bit Intel and ARM
-  if [[ "${UNAME_MACHINE}" != "arm64" ]] && [[ "${UNAME_MACHINE}" != "x86_64" ]]
+  if [[ "${UNAME_MACHINE}" != "arm64" ]] && [[ "${UNAME_MACHINE}" != "arm" ]]
   then
     abort "Homebrew is only supported on Intel and ARM processors!"
   fi
@@ -543,7 +543,7 @@ fi
 
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
-  macos_version="$(major_minor "$(/usr/var/jb/bin/sw_vers -productVersion)")"
+  macos_version="$(major_minor "$(/var/jb/usr/bin/sw_vers -productVersion)")"
   if version_lt "${macos_version}" "10.7"
   then
     abort "$(
