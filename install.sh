@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/var/jb/bin/bash
 
 # We don't need return codes for "$(command)", only stdout is needed.
 # Allow `[[ -n "$(command)" ]]`, `func "$(command)"`, pipes, etc.
@@ -146,7 +146,7 @@ fi
 # anywhere you like.
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
-  UNAME_MACHINE="$(/usr/bin/uname -m)"
+  UNAME_MACHINE="$(/usr/var/jb/bin/uname -m)"
 
   if [[ "${UNAME_MACHINE}" == "arm64" ]]
   then
@@ -160,7 +160,7 @@ then
   fi
   HOMEBREW_CACHE="${HOME}/Library/Caches/Homebrew"
 
-  STAT_PRINTF=("/usr/bin/stat" "-f")
+  STAT_PRINTF=("/usr/var/jb/bin/stat" "-f")
   PERMISSION_FORMAT="%A"
   CHOWN=("/usr/sbin/chown")
   CHGRP=("/usr/bin/chgrp")
@@ -175,16 +175,16 @@ else
   HOMEBREW_REPOSITORY="${HOMEBREW_PREFIX}/Homebrew"
   HOMEBREW_CACHE="${HOME}/.cache/Homebrew"
 
-  STAT_PRINTF=("/usr/bin/stat" "--printf")
+  STAT_PRINTF=("/usr/var/jb/bin/stat" "--printf")
   PERMISSION_FORMAT="%a"
-  CHOWN=("/bin/chown")
-  CHGRP=("/bin/chgrp")
+  CHOWN=("/var/jb/bin/chown")
+  CHGRP=("/var/jb/bin/chgrp")
   GROUP="$(id -gn)"
-  TOUCH=("/bin/touch")
-  INSTALL=("/usr/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0755")
+  TOUCH=("/var/jb/bin/touch")
+  INSTALL=("/usr/var/jb/bin/install" -d -o "${USER}" -g "${GROUP}" -m "0755")
 fi
-CHMOD=("/bin/chmod")
-MKDIR=("/bin/mkdir" "-p")
+CHMOD=("/var/jb/bin/chmod")
+MKDIR=("/var/jb/bin/mkdir" "-p")
 HOMEBREW_BREW_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/brew"
 HOMEBREW_CORE_DEFAULT_GIT_REMOTE="https://github.com/Homebrew/homebrew-core"
 
@@ -203,9 +203,9 @@ fi
 export HOMEBREW_{BREW,CORE}_GIT_REMOTE
 
 # TODO: bump version when new macOS is released or announced
-MACOS_NEWEST_UNSUPPORTED="16.0"
+MACOS_NEWEST_UNSUPPORTED="17.0"
 # TODO: bump version when new macOS is released
-MACOS_OLDEST_SUPPORTED="13.0"
+MACOS_OLDEST_SUPPORTED="15.0"
 
 # For Homebrew on Linux
 REQUIRED_RUBY_VERSION=2.6    # https://github.com/Homebrew/brew/pull/6556
@@ -220,12 +220,12 @@ export HOMEBREW_NO_ANALYTICS_MESSAGE_OUTPUT=1
 unset HAVE_SUDO_ACCESS # unset this from the environment
 
 have_sudo_access() {
-  if [[ ! -x "/usr/bin/sudo" ]]
+  if [[ ! -x "/usr/var/jb/bin/sudo" ]]
   then
     return 1
   fi
 
-  local -a SUDO=("/usr/bin/sudo")
+  local -a SUDO=("/usr/var/jb/bin/sudo")
   if [[ -n "${SUDO_ASKPASS-}" ]]
   then
     SUDO+=("-A")
@@ -268,8 +268,8 @@ execute_sudo() {
     then
       args=("-A" "${args[@]}")
     fi
-    ohai "/usr/bin/sudo" "${args[@]}"
-    execute "/usr/bin/sudo" "${args[@]}"
+    ohai "/usr/var/jb/bin/sudo" "${args[@]}"
+    execute "/usr/var/jb/bin/sudo" "${args[@]}"
   else
     ohai "${args[@]}"
     execute "${args[@]}"
@@ -278,10 +278,10 @@ execute_sudo() {
 
 getc() {
   local save_state
-  save_state="$(/bin/stty -g)"
-  /bin/stty raw -echo
+  save_state="$(/var/jb/bin/stty -g)"
+  /var/jb/bin/stty raw -echo
   IFS='' read -r -n 1 -d '' "$@"
-  /bin/stty "${save_state}"
+  /var/jb/bin/stty "${save_state}"
 }
 
 ring_bell() {
@@ -340,9 +340,9 @@ should_install_command_line_tools() {
 
   if version_gt "${macos_version}" "10.13"
   then
-    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]]
+    ! [[ -e "/Library/Developer/CommandLineTools/usr/var/jb/bin/git" ]]
   else
-    ! [[ -e "/Library/Developer/CommandLineTools/usr/bin/git" ]] ||
+    ! [[ -e "/Library/Developer/CommandLineTools/usr/var/jb/bin/git" ]] ||
       ! [[ -e "/usr/include/iconv.h" ]]
   fi
 }
@@ -468,9 +468,9 @@ EOABORT
 fi
 
 # Invalidate sudo timestamp before exiting (if it wasn't active before).
-if [[ -x /usr/bin/sudo ]] && ! /usr/bin/sudo -n -v 2>/dev/null
+if [[ -x /usr/var/jb/bin/sudo ]] && ! /usr/var/jb/bin/sudo -n -v 2>/dev/null
 then
-  trap '/usr/bin/sudo -k' EXIT
+  trap '/usr/var/jb/bin/sudo -k' EXIT
 fi
 
 # Things can fail later if `pwd` doesn't exist.
@@ -543,7 +543,7 @@ fi
 
 if [[ -n "${HOMEBREW_ON_MACOS-}" ]]
 then
-  macos_version="$(major_minor "$(/usr/bin/sw_vers -productVersion)")"
+  macos_version="$(major_minor "$(/usr/var/jb/bin/sw_vers -productVersion)")"
   if version_lt "${macos_version}" "10.7"
   then
     abort "$(
@@ -822,7 +822,7 @@ then
                       sed -e 's/^ *Label: //' -e 's/^ *//' |
                       sort -V |
                       tail -n1"
-  clt_label="$(chomp "$(/bin/bash -c "${clt_label_command}")")"
+  clt_label="$(chomp "$(/var/jb/bin/bash -c "${clt_label_command}")")"
 
   if [[ -n "${clt_label}" ]]
   then
@@ -830,7 +830,7 @@ then
     execute_sudo "/usr/sbin/softwareupdate" "-i" "${clt_label}"
     execute_sudo "/usr/bin/xcode-select" "--switch" "/Library/Developer/CommandLineTools"
   fi
-  execute_sudo "/bin/rm" "-f" "${clt_placeholder}"
+  execute_sudo "/var/jb/bin/rm" "-f" "${clt_placeholder}"
 fi
 
 # Headless install may have failed, so fallback to original 'xcode-select' method
@@ -855,7 +855,7 @@ EOABORT
   )"
 fi
 
-USABLE_GIT=/usr/bin/git
+USABLE_GIT=/var/jb/usr/bin/git
 if [[ -n "${HOMEBREW_ON_LINUX-}" ]]
 then
   USABLE_GIT="$(find_tool git)"
@@ -877,7 +877,7 @@ EOABORT
 EOABORT
     )"
   fi
-  if [[ "${USABLE_GIT}" != /usr/bin/git ]]
+  if [[ "${USABLE_GIT}" != /var/jb/usr/bin/git ]]
   then
     export HOMEBREW_GIT_PATH="${USABLE_GIT}"
     ohai "Found Git: ${HOMEBREW_GIT_PATH}"
@@ -903,7 +903,7 @@ The version of cURL that was found does not satisfy requirements for Homebrew.
 Please install cURL ${REQUIRED_CURL_VERSION} or newer and add it to your PATH.
 EOABORT
     )"
-  elif [[ "${USABLE_CURL}" != /usr/bin/curl ]]
+  elif [[ "${USABLE_CURL}" != /var/jb/usr/bin/curl ]]
   then
     export HOMEBREW_CURL_PATH="${USABLE_CURL}"
     ohai "Found cURL: ${HOMEBREW_CURL_PATH}"
